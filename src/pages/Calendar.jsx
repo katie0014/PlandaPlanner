@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext.jsx";
 import { BambooDecor, Card, PrimaryButton, Stars, TopNav, PlanningOverlay } from "../components/ui.jsx";
 import AssignmentForm from "../components/AssignmentForm.jsx";
 import { WeekGrid, DayTimeline } from "../components/TimeGrid.jsx";
+import { parseTasksCsv } from "../lib/csv.js";
 import { parseIcs, inferGoodHours, describeGoodHours } from "../lib/ics.js";
 import { WINDOWS } from "../lib/scheduler.js";
 import { addDays, countdown, dayKey, fmtDate, fmtLong, fmtTime, parse, sameDay, startOfDay, startOfWeek } from "../lib/dates.js";
@@ -74,6 +75,59 @@ function IcsUpload({ app }) {
   );
 }
 
+function CsvUpload({ app }) {
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState("");
+  const onFile = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(""); setDone("");
+    try {
+      const r = parseTasksCsv(await file.text());
+      if (r.error) { setResult(null); return setError(r.error); }
+      // skip tasks that are already in the list
+      const have = new Set(app.assignments.map((a) => `${a.name.toLowerCase()}|${a.dueDate}`));
+      const fresh = r.tasks.filter((t) => !have.has(`${t.name.toLowerCase()}|${t.dueDate}`));
+      setResult({ ...r, tasks: fresh, dupes: r.tasks.length - fresh.length });
+    } catch {
+      setResult(null);
+      setError("Couldn't read that file. Please upload a .csv file.");
+    }
+  };
+  const add = async () => {
+    await app.addAssignments(result.tasks.map(({ key, guessed, ...t }) => t));
+    setDone(`Added ${result.tasks.length} assignments.`);
+    setResult(null);
+  };
+  return (
+    <Card className="ics-card">
+      <h3>Import assignments from a .csv</h3>
+      <p className="hint">Columns: name and due date (required), plus optional time, hours and effort (1-5). Dates like 2026-10-21, 10/21, Oct 21 or "Friday" all work. Panda reads the due dates and schedules around them.</p>
+      <input type="file" accept=".csv,text/csv" onChange={onFile} aria-label="Upload .csv file" />
+      {error && <p role="alert" style={{ color: "#b3261e" }}>{error}</p>}
+      {done && <p className="insight">{done}</p>}
+      {result && (
+        <div className="insight">
+          <b>{result.tasks.length} assignments found</b>
+          {result.dupes > 0 && ` (${result.dupes} already in your list, skipped)`}
+          <ul>
+            {result.tasks.map((t) => (
+              <li key={t.key}>{t.name}: due {fmtDate(parse(t.dueDate))}, {fmtTime(parse(t.dueDate))} · {t.estHours}h{t.guessed ? " (estimated)" : ""} · effort {t.effort}</li>
+            ))}
+          </ul>
+          {result.skipped.length > 0 && <p style={{ color: "#b3261e" }}>Skipped: {result.skipped.join("; ")}</p>}
+          <div className="row">
+            <PrimaryButton type="button" variant="small" disabled={!result.tasks.length} onClick={add}>Add {result.tasks.length} to my list</PrimaryButton>
+            <PrimaryButton type="button" variant="small ghost" onClick={() => setResult(null)}>Cancel</PrimaryButton>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function Assignments({ app }) {
   const { assignments, addAssignment, updateAssignment, deleteAssignment } = app;
   const [editing, setEditing] = useState(null);
@@ -83,6 +137,7 @@ function Assignments({ app }) {
       <div className="stack">
         <AssignmentForm key={editing?.id || "new"} initial={editing} onCancel={editing ? () => setEditing(null) : undefined}
           onSubmit={(v) => { if (editing) { updateAssignment(editing.id, v); setEditing(null); } else addAssignment(v); }} />
+        <CsvUpload app={app} />
         <IcsUpload app={app} />
       </div>
       <div className="stack">

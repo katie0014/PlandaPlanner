@@ -97,6 +97,12 @@ export function AppProvider({ children }) {
       set({ assignments: list });
       return generatePlan({ assignments: list });
     },
+    // Add several assignments at once (CSV import) and plan only once.
+    addAssignments: (items) => {
+      const list = [...ref.current.assignments, ...items.map((a) => ({ id: uid("a"), hoursDone: 0, status: "active", ...a }))];
+      set({ assignments: list });
+      return generatePlan({ assignments: list });
+    },
     updateAssignment: (id, patch) => {
       const list = ref.current.assignments.map((x) => (x.id === id ? { ...x, ...patch } : x));
       set({ assignments: list });
