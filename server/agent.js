@@ -12,7 +12,8 @@ Rules:
 - High procrastination or startTiming=due_date: start earlier and use smaller daily chunks.
 - focusStyle=single: one assignment per block. focusStyle=mixed: rotate 2-3 assignments.
 - Split big or high-effort assignments over more days.
-- Never move or overlap blocks in lockedBlocks.
+- Never move or overlap blocks in lockedBlocks. Blocks with type=fixed are calendar events (classes, meetings): keep 15 minutes clear around them and prefer the longest free gaps, at times the student is usually free.
+- answers.goals is a list: honor every goal in it.
 - Times are local ISO strings like 2026-10-20T19:00:00. Block types: study, break. Study blocks need assignmentId.
 - Also return suggested start-by and internal-deadline dates (kind: start_by | internal_deadline, date: YYYY-MM-DD).
 Return only by calling submit_plan.`;

@@ -1,6 +1,7 @@
 // Rule-based scheduler. Used as the fallback when no AI backend is reachable
 // (and by the Express server when Claude fails), so it has no browser APIs.
 import { parse, toISO, startOfDay, addDays, addMinutes, daysBetween, dayKey, clamp } from "./dates.js";
+import { inferGoodHours, BUFFER_MIN } from "./ics.js";
 
 export const WINDOWS = { early_bird: [6, 12], night_owl: [17, 24], neither: [9, 18] };
 const roundTo = (n, step) => Math.round(n / step) * step;
@@ -18,10 +19,17 @@ export function makePlanLocal({ user, assignments, lockedBlocks = [], today }) {
   const single = a.focusStyle === "single";
   const breakTotal = a.breakHours;
   const breakLen = clamp(Math.round((breakTotal * 15) / 5) * 5, 5, 30);
-  const front = 1 + p * 0.5 + (a.goal === "start_early" ? 0.15 : 0) + (a.startTiming === "due_date" ? 0.1 : 0);
+  const goals = a.goals || (a.goal ? [a.goal] : []);
+  const front = 1 + p * 0.5 + (goals.includes("start_early") ? 0.15 : 0) + (a.startTiming === "due_date" ? 0.1 : 0);
   const baseChunk = Math.max(0.5, roundTo((single ? 2 : 1.5) * (1 - 0.4 * p), 0.25));
 
-  const occupied = lockedBlocks.map((b) => [parse(b.start), parse(b.end)]);
+  // Calendar events (.ics) are fixed: keep a small buffer around them and prefer the
+  // hours that are usually free on that weekday.
+  const events = lockedBlocks.filter((b) => b.type === "fixed");
+  const good = events.length ? inferGoodHours(events, [ws, we], now) : null;
+  const occupied = lockedBlocks.map((b) =>
+    b.type === "fixed" ? [addMinutes(parse(b.start), -BUFFER_MIN), addMinutes(parse(b.end), BUFFER_MIN)] : [parse(b.start), parse(b.end)]
+  );
   const sessionCount = {};
   lockedBlocks.forEach((b) => {
     if (b.type === "study" && b.assignmentId) sessionCount[b.assignmentId] = (sessionCount[b.assignmentId] || 0) + 1;
@@ -51,9 +59,9 @@ export function makePlanLocal({ user, assignments, lockedBlocks = [], today }) {
     .sort((x, y) => x.due - y.due);
 
   const free = (s, e) => !occupied.some(([os, oe]) => s < oe && e > os);
-  function findSlot(day, mins, notBefore, limit) {
-    const end = new Date(Math.min(at(day, we).getTime(), limit.getTime()));
-    const t = new Date(Math.max(at(day, ws).getTime(), notBefore.getTime()));
+  function findIn(day, [h0, h1], mins, notBefore, limit) {
+    const end = new Date(Math.min(at(day, h1).getTime(), limit.getTime()));
+    const t = new Date(Math.max(at(day, h0).getTime(), notBefore.getTime()));
     t.setMinutes(Math.ceil(t.getMinutes() / 15) * 15, 0, 0);
     for (let guard = 0; guard < 200; guard++) {
       const e = addMinutes(t, mins);
@@ -61,6 +69,14 @@ export function makePlanLocal({ user, assignments, lockedBlocks = [], today }) {
       const hit = occupied.find(([os, oe]) => t < oe && e > os);
       if (!hit) return t;
       t.setTime(hit[1].getTime());
+    }
+    return null;
+  }
+  function findSlot(day, mins, notBefore, limit) {
+    const windows = [...(good ? good[day.getDay()] : []), [ws, we]];
+    for (const w of windows) {
+      const t = findIn(day, w, mins, notBefore, limit);
+      if (t) return t;
     }
     return null;
   }

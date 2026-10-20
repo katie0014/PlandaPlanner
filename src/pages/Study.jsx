@@ -116,7 +116,7 @@ export default function Study() {
 
         <div className="study-center">
           <SpeechBubble>{msg}</SpeechBubble>
-          <PandaMascot state={state} size={isBreak ? 190 : 260} />
+          <PandaMascot state={state} size={isBreak ? 240 : 340} />
         </div>
 
         <div className="timer-zone">

@@ -10,7 +10,7 @@ const minutesOf = (d) => d.getHours() * 60 + d.getMinutes();
 
 // One day column. Blocks can be dragged vertically to move, or resized from the bottom edge.
 // Any manual edit marks the block as locked so regeneration leaves it alone.
-function DayColumn({ day, blocks, titleOf, onChange, detailed }) {
+function DayColumn({ day, blocks, titleOf, onChange, detailed, good }) {
   const [drag, setDrag] = useState(null);
   const colRef = useRef(null);
 
@@ -41,6 +41,9 @@ function DayColumn({ day, blocks, titleOf, onChange, detailed }) {
 
   return (
     <div className="day-col" ref={colRef} style={{ height: (END_HOUR - START_HOUR) * ROW }} onPointerMove={move} onPointerUp={end} onPointerCancel={() => setDrag(null)}>
+      {(good?.[day.getDay()] || []).map(([h0, h1]) => (
+        <div key={h0} className="good-band" style={{ top: (h0 - START_HOUR) * ROW, height: (h1 - h0) * ROW }} />
+      ))}
       {blocks.map((b) => {
         let s = parse(b.start), e = parse(b.end);
         if (drag?.id === b.id) { s = addMinutes(drag.s, drag.ds); e = addMinutes(drag.e, drag.de); }
@@ -79,7 +82,7 @@ export function HourLabels() {
   );
 }
 
-export function WeekGrid({ weekStart, blocks, titleOf, onChange, onPickDay }) {
+export function WeekGrid({ weekStart, blocks, titleOf, onChange, onPickDay, good }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(startOfDay(weekStart), i));
   const today = new Date();
   return (
@@ -95,19 +98,19 @@ export function WeekGrid({ weekStart, blocks, titleOf, onChange, onPickDay }) {
       <div className="tg-body">
         <HourLabels />
         {days.map((d) => (
-          <DayColumn key={+d} day={d} blocks={blocks.filter((b) => sameDay(parse(b.start), d))} titleOf={titleOf} onChange={onChange} />
+          <DayColumn key={+d} day={d} blocks={blocks.filter((b) => sameDay(parse(b.start), d))} titleOf={titleOf} onChange={onChange} good={good} />
         ))}
       </div>
     </div>
   );
 }
 
-export function DayTimeline({ day, blocks, titleOf, onChange }) {
+export function DayTimeline({ day, blocks, titleOf, onChange, good }) {
   return (
     <div className="timegrid daily">
       <div className="tg-body">
         <HourLabels />
-        <DayColumn day={day} blocks={blocks.filter((b) => sameDay(parse(b.start), day))} titleOf={titleOf} onChange={onChange} detailed />
+        <DayColumn day={day} blocks={blocks.filter((b) => sameDay(parse(b.start), day))} titleOf={titleOf} onChange={onChange} detailed good={good} />
       </div>
     </div>
   );

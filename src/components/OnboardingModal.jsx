@@ -2,16 +2,20 @@ import { useState } from "react";
 import { Modal, PrimaryButton, Slider } from "./ui.jsx";
 import PandaMascot from "./PandaMascot.jsx";
 
-const Options = ({ options, value, onChange }) => (
-  <div className="options" role="radiogroup">
-    {options.map(([v, label, emoji]) => (
-      <button type="button" key={v} role="radio" aria-checked={value === v} className={`option ${value === v ? "selected" : ""}`} onClick={() => onChange(v)}>
-        <span className="emoji">{emoji}</span>
-        {label}
-      </button>
-    ))}
-  </div>
-);
+const Options = ({ options, value, onChange, multi }) => {
+  const on = (v) => (multi ? (value || []).includes(v) : value === v);
+  const click = (v) => onChange(multi ? (on(v) ? value.filter((x) => x !== v) : [...(value || []), v]) : v);
+  return (
+    <div className={`options ${multi ? "multi" : ""}`} role={multi ? "group" : "radiogroup"}>
+      {options.map(([v, label, emoji]) => (
+        <button type="button" key={v} role={multi ? "checkbox" : "radio"} aria-checked={on(v)} className={`option ${on(v) ? "selected" : ""}`} onClick={() => click(v)}>
+          <span className="emoji">{emoji}</span>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+};
 
 const STEPS = [
   {
@@ -40,10 +44,10 @@ const STEPS = [
     ),
   },
   {
-    key: "goal",
-    q: "What's your goal?",
+    key: "goals",
+    q: "What are your goals?",
     render: (v, set) => (
-      <Options value={v} onChange={set} options={[["start_early", "Start assignments early", "⏰"], ["focus", "Improve focus", "🎯"], ["time_management", "Help time management", "🗓️"], ["other", "Other", "✨"]]} />
+      <Options multi value={v} onChange={set} options={[["start_early", "Start assignments early", "⏰"], ["focus", "Improve focus", "🎯"], ["time_management", "Help time management", "🗓️"], ["other", "Other", "✨"]]} />
     ),
   },
   {
@@ -59,7 +63,7 @@ const STEPS = [
     render: (v, set) => (
       <>
         <Slider min="0" max="4" step="0.25" value={v ?? 1} onChange={(e) => set(Number(e.target.value))} aria-label="Break hours per day" />
-        <div className="slider-labels"><span>0 h</span><b>{v ?? 1} h per day</b><span>4 h</span></div>
+        <div className="slider-labels"><span>0 hours</span><b>{v ?? 1} {(v ?? 1) === 1 ? "hour" : "hours"}</b><span>4 hours</span></div>
       </>
     ),
     initial: 1,
@@ -73,7 +77,7 @@ export default function OnboardingModal({ onFinish, onClose }) {
   const [mood, setMood] = useState("idle");
   const s = STEPS[step];
   const last = step === STEPS.length - 1;
-  const answered = answers[s.key] !== undefined;
+  const answered = Array.isArray(answers[s.key]) ? answers[s.key].length > 0 : answers[s.key] !== undefined;
 
   const set = (v) => {
     setAnswers((a) => ({ ...a, [s.key]: v }));
@@ -90,6 +94,7 @@ export default function OnboardingModal({ onFinish, onClose }) {
         ))}
       </div>
       <h2>{s.q}</h2>
+      {s.key === "goals" && <p className="hint">Pick as many as you like.</p>}
       <div className="step-body">{s.render(answers[s.key], set)}</div>
       <div className="modal-footer">
         <PrimaryButton variant="ghost" onClick={() => (step === 0 ? onClose() : setStep(step - 1))}>

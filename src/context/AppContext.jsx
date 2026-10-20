@@ -4,7 +4,7 @@ import { isPreserved } from "../lib/scheduler.js";
 import { hoursBetween, toISO, uid } from "../lib/dates.js";
 
 const KEY = "panda-planner-v1";
-const empty = { user: null, assignments: [], timeBlocks: [], suggestedDates: [], stats: { stalksGrown: 0, sessionsCompleted: 0, weekStart: null } };
+const empty = { user: null, assignments: [], timeBlocks: [], suggestedDates: [], icsInfo: null, stats: { stalksGrown: 0, sessionsCompleted: 0, weekStart: null } };
 
 function load() {
   try {
@@ -108,6 +108,17 @@ export function AppProvider({ children }) {
       set({ assignments: list, timeBlocks: blocks, suggestedDates: ref.current.suggestedDates.filter((x) => x.assignmentId !== id) });
     },
     setTimeBlocks: (timeBlocks) => set({ timeBlocks }),
+    // Replace any earlier calendar import, then re-plan around the new fixed events.
+    importIcs: (events, fileName) => {
+      const timeBlocks = [...ref.current.timeBlocks.filter((b) => b.source !== "ics"), ...events];
+      set({ timeBlocks, icsInfo: { fileName, count: events.length } });
+      return generatePlan({ timeBlocks });
+    },
+    clearIcs: () => {
+      const timeBlocks = ref.current.timeBlocks.filter((b) => b.source !== "ics");
+      set({ timeBlocks, icsInfo: null });
+      return generatePlan({ timeBlocks });
+    },
     updateBlock: (id, patch) => set({ timeBlocks: ref.current.timeBlocks.map((b) => (b.id === id ? { ...b, ...patch } : b)) }),
     toggleBlockDone: (id, value) => dispatch({ type: "toggleDone", id, value }),
     acceptSuggestion: (id) => set({ suggestedDates: ref.current.suggestedDates.map((x) => (x.id === id ? { ...x, accepted: true } : x)) }),
