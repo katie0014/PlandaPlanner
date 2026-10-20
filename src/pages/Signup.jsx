@@ -24,7 +24,7 @@ export default function Signup() {
     <main className="page signup">
       <BambooDecor />
       <div className="signup-wrap">
-        <PandaMascot state="idle" size={360} />
+        <PandaMascot state="idle" size={300} />
         <Card className="signup-card">
           <h1>Sign up here</h1>
           <form onSubmit={(e) => { e.preventDefault(); setOpen(true); }} className="form-grid">
