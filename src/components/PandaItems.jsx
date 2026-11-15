@@ -67,15 +67,6 @@ export function HeadItem({ id }) {
           <ellipse cx="120" cy="40" rx="50" ry="9" fill="#F5DDA0" {...S} />
         </g>
       );
-    case "grad":
-      return (
-        <g>
-          <path d="M88 34 v16 q32 12 64 0 v-16" fill="#3a3a3a" {...S} />
-          <path d="M120 8 L178 28 L120 46 L62 28 Z" fill={INK} {...S} />
-          <path d="M120 28 L172 34 v18" fill="none" stroke="#FFD84D" strokeWidth="3" />
-          <circle cx="172" cy="54" r="4.5" fill="#FFD84D" stroke={INK} strokeWidth="2" />
-        </g>
-      );
     case "crown":
       return (
         <g>
@@ -90,27 +81,44 @@ export function HeadItem({ id }) {
   }
 }
 
-/* ---------- laptop sticker (lid spans x 68-172, y 116-174; bamboo logo sits at centre) ---------- */
-export function Sticker({ id }) {
-  const t = "translate(90 147)";
+/* ---------- laptop stickers (lid spans x 68-172, y 116-174; bamboo logo sits at centre) ---------- */
+// Spots around the logo, in the order they fill up.
+const STICKER_SPOTS = [[90, 147], [150, 147], [100, 126], [140, 126], [100, 162], [140, 162]];
+const stickerScale = (n) => (n <= 1 ? 1 : n === 2 ? 0.9 : n <= 4 ? 0.75 : 0.62);
+
+export function Stickers({ ids = [] }) {
+  const list = ids.slice(0, STICKER_SPOTS.length);
+  const s = stickerScale(list.length);
+  return (
+    <g>
+      {list.map((id, i) => (
+        <g key={id} transform={`translate(${STICKER_SPOTS[i][0]} ${STICKER_SPOTS[i][1]}) scale(${s})`}>
+          <Sticker id={id} />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+function Sticker({ id }) {
   switch (id) {
     case "st-heart":
-      return <path transform={`${t} scale(1.2)`} d="M0 8 C-16 -3 -9 -14 0 -6 C9 -14 16 -3 0 8 Z" fill="#FF6B8B" stroke={INK} strokeWidth="2" />;
+      return <path transform="scale(1.2)" d="M0 8 C-16 -3 -9 -14 0 -6 C9 -14 16 -3 0 8 Z" fill="#FF6B8B" stroke={INK} strokeWidth="2" />;
     case "st-star":
-      return <polygon transform={t} points="0,-12 3.5,-4 12,-3.5 5.5,2.5 7.5,11 0,6.5 -7.5,11 -5.5,2.5 -12,-3.5 -3.5,-4" fill="#FFD84D" stroke={INK} strokeWidth="2" />;
+      return <polygon points="0,-12 3.5,-4 12,-3.5 5.5,2.5 7.5,11 0,6.5 -7.5,11 -5.5,2.5 -12,-3.5 -3.5,-4" fill="#FFD84D" stroke={INK} strokeWidth="2" />;
     case "st-smile":
       return (
-        <g transform={t}>
+        <g>
           <circle r="11" fill="#FFE066" stroke={INK} strokeWidth="2" />
           <circle cx="-4" cy="-3" r="1.8" fill={INK} /><circle cx="4" cy="-3" r="1.8" fill={INK} />
           <path d="M-5 3 q5 6 10 0" fill="none" stroke={INK} strokeWidth="2" strokeLinecap="round" />
         </g>
       );
     case "st-bolt":
-      return <polygon transform={t} points="3,-13 -8,2 -1,2 -4,13 8,-3 1,-3" fill="#FFD84D" stroke={INK} strokeWidth="2" strokeLinejoin="round" />;
+      return <polygon points="3,-13 -8,2 -1,2 -4,13 8,-3 1,-3" fill="#FFD84D" stroke={INK} strokeWidth="2" strokeLinejoin="round" />;
     case "st-rainbow":
       return (
-        <g transform={t} fill="none" strokeWidth="3.2" strokeLinecap="round">
+        <g fill="none" strokeWidth="3.2" strokeLinecap="round">
           <path d="M-12 8 a12 12 0 0 1 24 0" stroke="#FF6B8B" />
           <path d="M-8 8 a8 8 0 0 1 16 0" stroke="#FFD84D" />
           <path d="M-4 8 a4 4 0 0 1 8 0" stroke="#7BC47F" />
@@ -118,7 +126,7 @@ export function Sticker({ id }) {
       );
     case "st-panda":
       return (
-        <g transform={t}>
+        <g>
           <circle cx="-7" cy="-8" r="4" fill={INK} /><circle cx="7" cy="-8" r="4" fill={INK} />
           <circle r="10" fill="#fff" stroke={INK} strokeWidth="2" />
           <ellipse cx="-4" cy="-1" rx="2.6" ry="3.4" fill={INK} /><ellipse cx="4" cy="-1" rx="2.6" ry="3.4" fill={INK} />
@@ -243,4 +251,64 @@ export function Plant({ id }) {
     default:
       return null;
   }
+}
+
+/* ---------- drinks (drawn around x=200, standing on the desk) ---------- */
+export function Drink({ id }) {
+  if (id === "boba")
+    return (
+      <g>
+        <path d="M204 126 L198 156" stroke="#FF8FB1" strokeWidth="5" strokeLinecap="round" />
+        <path d="M188 156 h24 l-3 22 h-18 z" fill="#F4F8FF" fillOpacity=".85" {...S} />
+        <path d="M190 164 h20 l-2 14 h-16 z" fill="#C8956B" />
+        {[[194, 174], [200, 172], [206, 174], [197, 177], [203, 177]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="2.2" fill="#3b2418" />)}
+        <path d="M186 156 q14 -9 28 0 z" fill="#FFC8DD" {...S} />
+      </g>
+    );
+  // a plain, unbranded soda can
+  return (
+    <g>
+      <rect x="188" y="148" width="24" height="30" rx="5" fill="#E85D75" {...S} />
+      <path d="M188 160 q6 -5 12 0 t12 0 v8 q-6 -5 -12 0 t-12 0 z" fill="#fff" />
+      <rect x="190" y="146" width="20" height="4" rx="2" fill="#B9C0CE" stroke={INK} strokeWidth="2" />
+      <path d="M200 146 l5 -3" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
+    </g>
+  );
+}
+
+// Places a desk accessory on the left or right half of the desk. Each kind is drawn around a
+// native centre x, so it is shifted to the chosen spot.
+const NATIVE_X = { object: 35, mug: 200, drink: 200, plant: 230 };
+const SPOT_X = { left: 34, right: 205 };
+export function DeskPiece({ id, spot }) {
+  const cat = ITEM_BY_ID[id]?.cat;
+  if (!cat) return null;
+  const dx = SPOT_X[spot] - NATIVE_X[cat];
+  return (
+    <g transform={`translate(${dx} 0)`}>
+      {cat === "object" && <DeskItem id={id} />}
+      {cat === "mug" && <Mug id={id} />}
+      {cat === "drink" && <Drink id={id} />}
+      {cat === "plant" && <Plant id={id} />}
+    </g>
+  );
+}
+
+/* ---------- background behind the panda ---------- */
+export function Background({ id }) {
+  const it = ITEM_BY_ID[id];
+  if (!it) return null;
+  return (
+    <g>
+      {it.colors && (
+        <defs>
+          <linearGradient id="bg-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={it.colors[0]} />
+            <stop offset="1" stopColor={it.colors[1]} />
+          </linearGradient>
+        </defs>
+      )}
+      <rect x="0" y="0" width="240" height="200" rx="26" fill={it.colors ? "url(#bg-grad)" : it.color} />
+    </g>
+  );
 }

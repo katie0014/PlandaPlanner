@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useReducer, useRef, useState, use
 import { generatePlan as apiGeneratePlan } from "../lib/api.js";
 import { isPreserved } from "../lib/scheduler.js";
 import { hoursBetween, toISO, uid } from "../lib/dates.js";
-import { ITEM_BY_ID, START_EQUIPPED, START_OWNED } from "../lib/shop.js";
+import { ITEM_BY_ID, START_EQUIPPED, START_OWNED, equipRule, normalizeEquipped } from "../lib/shop.js";
 import { START_BAMBOO, taskReward } from "../lib/rewards.js";
 
 const KEY = "panda-planner-v1";
@@ -11,8 +11,14 @@ const empty = { user: null, assignments: [], timeBlocks: [], suggestedDates: [],
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    // older saves have no bamboo/outfit fields, so fall back to the starting values
-    return s ? { ...empty, ...s, equipped: { ...START_EQUIPPED, ...s.equipped }, owned: [...new Set([...START_OWNED, ...(s.owned || [])])] } : empty;
+    if (!s) return empty;
+    // Older saves: drop items that no longer exist (refunding their price, e.g. the old graduation
+    // cap), and rebuild the outfit in the current shape.
+    const ownedRaw = [...new Set([...START_OWNED, ...(s.owned || [])])];
+    const gone = ownedRaw.filter((id) => !ITEM_BY_ID[id]);
+    const refund = gone.includes("grad") ? 90 : 0;
+    const owned = ownedRaw.filter((id) => ITEM_BY_ID[id]);
+    return { ...empty, ...s, bamboo: (s.bamboo ?? START_BAMBOO) + refund, owned, equipped: normalizeEquipped(s.equipped, owned) };
   } catch {
     return empty;
   }
@@ -50,12 +56,17 @@ function reducer(state, a) {
       return { ...state, bamboo: state.bamboo - item.price, owned: [...state.owned, item.id] };
     }
     case "equip": {
-      const item = ITEM_BY_ID[a.id];
-      if (!item || !state.owned.includes(item.id)) return state;
-      return { ...state, equipped: { ...state.equipped, [item.slot]: item.id } };
+      const it = ITEM_BY_ID[a.id];
+      if (!it || !state.owned.includes(it.id)) return state;
+      const r = equipRule(state.equipped, it.id);
+      return r.ok ? { ...state, equipped: { ...state.equipped, [it.slot]: r.next } } : state;
     }
-    case "unequip":
-      return { ...state, equipped: { ...state.equipped, [a.slot]: null } };
+    case "unequip": {
+      const slot = a.slot || ITEM_BY_ID[a.id]?.slot;
+      if (!slot) return state;
+      const next = a.id ? state.equipped[slot].filter((x) => x !== a.id) : [];
+      return { ...state, equipped: { ...state.equipped, [slot]: next } };
+    }
     case "addStalks": {
       const stats = state.stats;
       return { ...state, stats: { ...stats, stalksGrown: stats.stalksGrown + a.stalks, sessionsCompleted: stats.sessionsCompleted + 1 } };
@@ -126,7 +137,16 @@ export function AppProvider({ children }) {
       notify(`Bought ${item.name}! −${item.price} 🎋`);
       return { ok: true };
     },
-    equipItem: (id) => dispatch({ type: "equip", id }),
+    equipItem: (id) => {
+      const r = equipRule(ref.current.equipped, id);
+      if (!r.ok) {
+        notify(r.message);
+        return r;
+      }
+      dispatch({ type: "equip", id });
+      return r;
+    },
+    unequipItem: (id) => dispatch({ type: "unequip", id }),
     unequipSlot: (slot) => dispatch({ type: "unequip", slot }),
     setUser: (user) => set({ user }),
     addAssignment: (a) => {

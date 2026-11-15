@@ -1,6 +1,6 @@
 import { clamp, parse } from "./dates.js";
 
-export const START_BAMBOO = 100;
+export const START_BAMBOO = 50;
 export const SESSION_BAMBOO = 25;
 export const TASK_BASE = 50;
 export const EARLY_DAY_BONUS = 10;

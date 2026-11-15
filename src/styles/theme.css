@@ -248,3 +248,14 @@ input:focus, select:focus { outline: none; border-color: var(--pink-deep); }
 .chip { font: inherit; font-weight: 700; background: var(--white); border: 3px solid var(--pink); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
 .chip.on { background: var(--green); border-color: var(--green-dark); }
 @media (max-width: 900px) { .cust-grid { grid-template-columns: 1fr; } .cust-preview { position: static; } }
+
+/* v3 shop layout */
+.brand-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bamboo-count { margin-right: 0; }
+.cat-nav { position: sticky; top: 58px; z-index: 15; display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 0; background: var(--pink-light); }
+.cat-nav button { font: inherit; font-weight: 800; background: var(--white); border: 3px solid var(--pink); border-radius: 999px; padding: 6px 16px; cursor: pointer; }
+.cat-nav button:hover { background: var(--pink); }
+.shop-section { scroll-margin-top: 130px; margin-top: 26px; padding-top: 8px; border-top: 4px dashed var(--pink); }
+.shop-section h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.shop-section .sub { margin: 0 0 4px; color: #6b6b6b; font-size: 14px; }
+.chip:disabled { opacity: .45; cursor: not-allowed; }

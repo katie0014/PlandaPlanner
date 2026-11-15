@@ -89,9 +89,11 @@ export function TopNav() {
   const { bamboo } = useApp();
   return (
     <nav className="topnav" aria-label="Main">
-      <NavLink to="/home">🐼 Panda Planner</NavLink>
-      <div>
+      <div className="brand-group">
+        <NavLink to="/home">🐼 Panda Planner</NavLink>
         <span className="bamboo-count" aria-label={`${bamboo} bamboo`} title="Your bamboo">🎋 {bamboo}</span>
+      </div>
+      <div>
         <NavLink to="/home">Home</NavLink>
         <NavLink to="/calendar">Calendar</NavLink>
         <NavLink to="/study">Study</NavLink>
