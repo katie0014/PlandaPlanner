@@ -2,14 +2,17 @@ import { createContext, useContext, useEffect, useReducer, useRef, useState, use
 import { generatePlan as apiGeneratePlan } from "../lib/api.js";
 import { isPreserved } from "../lib/scheduler.js";
 import { hoursBetween, toISO, uid } from "../lib/dates.js";
+import { ITEM_BY_ID, START_EQUIPPED, START_OWNED } from "../lib/shop.js";
+import { START_BAMBOO, taskReward } from "../lib/rewards.js";
 
 const KEY = "panda-planner-v1";
-const empty = { user: null, assignments: [], timeBlocks: [], suggestedDates: [], icsInfo: null, stats: { stalksGrown: 0, sessionsCompleted: 0, weekStart: null } };
+const empty = { user: null, assignments: [], timeBlocks: [], suggestedDates: [], icsInfo: null, bamboo: START_BAMBOO, owned: START_OWNED, equipped: START_EQUIPPED, stats: { stalksGrown: 0, sessionsCompleted: 0, weekStart: null } };
 
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    return s ? { ...empty, ...s } : empty;
+    // older saves have no bamboo/outfit fields, so fall back to the starting values
+    return s ? { ...empty, ...s, equipped: { ...START_EQUIPPED, ...s.equipped }, owned: [...new Set([...START_OWNED, ...(s.owned || [])])] } : empty;
   } catch {
     return empty;
   }
@@ -38,6 +41,21 @@ function reducer(state, a) {
             : state.assignments,
       };
     }
+    case "earn":
+      return { ...state, bamboo: state.bamboo + Math.max(0, Math.round(a.amount)) };
+    case "buy": {
+      const item = ITEM_BY_ID[a.id];
+      // checked here too, so a double click or stale UI can never overspend or buy twice
+      if (!item || state.owned.includes(item.id) || state.bamboo < item.price) return state;
+      return { ...state, bamboo: state.bamboo - item.price, owned: [...state.owned, item.id] };
+    }
+    case "equip": {
+      const item = ITEM_BY_ID[a.id];
+      if (!item || !state.owned.includes(item.id)) return state;
+      return { ...state, equipped: { ...state.equipped, [item.slot]: item.id } };
+    }
+    case "unequip":
+      return { ...state, equipped: { ...state.equipped, [a.slot]: null } };
     case "addStalks": {
       const stats = state.stats;
       return { ...state, stats: { ...stats, stalksGrown: stats.stalksGrown + a.stalks, sessionsCompleted: stats.sessionsCompleted + 1 } };
@@ -53,6 +71,7 @@ export const useApp = () => useContext(Ctx);
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, load);
   const [planning, setPlanning] = useState(false);
+  const [toast, setToast] = useState(null);
   const ref = useRef(state);
   ref.current = state;
 
@@ -90,7 +109,25 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  const notify = (text) => setToast({ id: Date.now(), text });
+
   const actions = {
+    notify,
+    earnBamboo: (amount, text) => {
+      dispatch({ type: "earn", amount });
+      if (text) notify(text);
+    },
+    buyItem: (id) => {
+      const item = ITEM_BY_ID[id];
+      const st = ref.current;
+      if (!item || st.owned.includes(id)) return { ok: false, message: "You already own this." };
+      if (st.bamboo < item.price) return { ok: false, message: `You need ${item.price - st.bamboo} more bamboo.` };
+      dispatch({ type: "buy", id });
+      notify(`Bought ${item.name}! −${item.price} 🎋`);
+      return { ok: true };
+    },
+    equipItem: (id) => dispatch({ type: "equip", id }),
+    unequipSlot: (slot) => dispatch({ type: "unequip", slot }),
     setUser: (user) => set({ user }),
     addAssignment: (a) => {
       const list = [...ref.current.assignments, { id: uid("a"), hoursDone: 0, status: "active", ...a }];
@@ -104,6 +141,14 @@ export function AppProvider({ children }) {
       return generatePlan({ assignments: list });
     },
     updateAssignment: (id, patch) => {
+      const cur = ref.current.assignments.find((x) => x.id === id);
+      // finishing a task pays out once; reopening and finishing again doesn't pay twice
+      if (cur && patch.status === "done" && cur.status !== "done" && !cur.bambooAwarded) {
+        const r = taskReward(cur);
+        patch = { ...patch, bambooAwarded: true };
+        dispatch({ type: "earn", amount: r.total });
+        notify(`Task complete! +${r.total} 🎋${r.daysEarly ? ` (${r.daysEarly} day${r.daysEarly > 1 ? "s" : ""} early)` : ""}`);
+      }
       const list = ref.current.assignments.map((x) => (x.id === id ? { ...x, ...patch } : x));
       set({ assignments: list });
       return patch.status === undefined || patch.dueDate || patch.estHours ? generatePlan({ assignments: list }) : undefined;
@@ -134,5 +179,5 @@ export function AppProvider({ children }) {
     generatePlan,
   };
 
-  return <Ctx.Provider value={{ ...state, planning, ...actions }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ ...state, planning, toast, ...actions }}>{children}</Ctx.Provider>;
 }

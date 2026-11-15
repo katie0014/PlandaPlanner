@@ -4,6 +4,9 @@ import Signup from "./pages/Signup.jsx";
 import Home from "./pages/Home.jsx";
 import CalendarPage from "./pages/Calendar.jsx";
 import Study from "./pages/Study.jsx";
+import Shop from "./pages/Shop.jsx";
+import Customize from "./pages/Customize.jsx";
+import { Toast } from "./components/ui.jsx";
 
 function Guard({ children }) {
   const { user } = useApp();
@@ -20,8 +23,11 @@ export default function App() {
           <Route path="/home" element={<Guard><Home /></Guard>} />
           <Route path="/calendar" element={<Guard><CalendarPage /></Guard>} />
           <Route path="/study" element={<Guard><Study /></Guard>} />
+          <Route path="/shop" element={<Guard><Shop /></Guard>} />
+          <Route path="/customize" element={<Guard><Customize /></Guard>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <Toast />
       </HashRouter>
     </AppProvider>
   );

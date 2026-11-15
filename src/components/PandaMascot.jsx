@@ -1,9 +1,18 @@
 // Kawaii panda peeking over its laptop (flat sticker style, bold outlines).
 // state: idle | happy | focus | sleepy. Pupils glance down at the laptop unless asleep/happy.
+import { useApp } from "../context/AppContext.jsx";
+import { START_EQUIPPED } from "../lib/shop.js";
+import { Collar, ScarfTail, sleeveColor, HeadItem, Sticker, DeskItem, Mug, Plant } from "./PandaItems.jsx";
+
 const INK = "#1F1F1F";
 const W = 3.5;
 
-export default function PandaMascot({ state = "idle", size = 260, className = "" }) {
+// `equipped` overrides the saved outfit (used for shop previews); otherwise every mascot
+// on the site wears whatever the user has equipped.
+export default function PandaMascot({ state = "idle", size = 260, className = "", equipped }) {
+  const app = useApp();
+  const eq = equipped || app?.equipped || START_EQUIPPED;
+  const sleeve = sleeveColor(eq.clothes);
   const happy = state === "happy";
   const sleepy = state === "sleepy";
   const focus = state === "focus";
@@ -48,30 +57,34 @@ export default function PandaMascot({ state = "idle", size = 260, className = ""
       <ellipse cx="66" cy="110" rx="9" ry="6" fill="#FFC8DD" opacity=".85" />
       <ellipse cx="174" cy="110" rx="9" ry="6" fill="#FFC8DD" opacity=".85" />
       <ellipse cx="120" cy="106" rx="10" ry="6.5" fill={INK} />
+      <Collar id={eq.clothes} />
+      <HeadItem id={eq.head} />
 
       {/* headphones */}
       {focus && (
         <g>
-          <path d="M52 86 Q52 24 120 24 Q188 24 188 86" fill="none" stroke="#FF8FB1" strokeWidth="8" />
-          <path d="M52 86 Q52 24 120 24 Q188 24 188 86" fill="none" stroke={INK} strokeWidth="1.5" opacity=".35" />
+          {!eq.head && <path d="M52 86 Q52 24 120 24 Q188 24 188 86" fill="none" stroke="#FF8FB1" strokeWidth="8" />}
           <rect x="41" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth={W} />
           <rect x="180" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth={W} />
         </g>
       )}
 
-      {/* desk, mouse, mug */}
+      {/* desk, then whatever stands on it */}
       <rect x="14" y="178" width="212" height="9" rx="4.5" fill="#F9D9B0" stroke={INK} strokeWidth={W} />
-      <ellipse cx="40" cy="172" rx="13" ry="6.5" fill="#fff" stroke={INK} strokeWidth="3" />
-      <path d="M40 166 v6" stroke={INK} strokeWidth="2" />
-      <g>
-        <rect x="190" y="152" width="26" height="26" rx="5" fill="#FF8FB1" stroke={INK} strokeWidth="3" />
-        <path d="M216 158 q12 1 12 9 q0 8 -12 8" fill="none" stroke={INK} strokeWidth="3" />
-        <path d="M198 144 q-3 -6 1 -11 M207 144 q-3 -6 1 -11" fill="none" stroke="#d8d8d8" strokeWidth="2.5" className="steam" />
-      </g>
+      {eq.desk ? (
+        <DeskItem id={eq.desk} />
+      ) : (
+        <g>
+          <ellipse cx="40" cy="172" rx="13" ry="6.5" fill="#fff" stroke={INK} strokeWidth="3" />
+          <path d="M40 166 v6" stroke={INK} strokeWidth="2" />
+        </g>
+      )}
+      <Plant id={eq.plant} />
+      <Mug id={eq.mug} />
 
       {/* body hidden behind the laptop: just the little black arms at the sides */}
-      <ellipse cx="66" cy="160" rx="13" ry="16" fill={INK} />
-      <ellipse cx="174" cy="160" rx="13" ry="16" fill={INK} />
+      <ellipse cx="66" cy="160" rx={sleeve ? 15 : 13} ry={sleeve ? 18 : 16} fill={sleeve || INK} stroke={INK} strokeWidth={sleeve ? 3 : 0} />
+      <ellipse cx="174" cy="160" rx={sleeve ? 15 : 13} ry={sleeve ? 18 : 16} fill={sleeve || INK} stroke={INK} strokeWidth={sleeve ? 3 : 0} />
 
       {/* laptop, back of the lid facing us */}
       <rect x="68" y="116" width="104" height="58" rx="8" fill="#D6DCE8" stroke={INK} strokeWidth={W} />
@@ -79,11 +92,13 @@ export default function PandaMascot({ state = "idle", size = 260, className = ""
       <g transform="translate(120 146)" fill="#7BC47F" stroke={INK} strokeWidth="2">
         <path d="M0 -11 q8 5 6 15 q-6 4 -12 0 q-2 -10 6 -15 z" />
       </g>
+      <Sticker id={eq.sticker} />
       <rect x="60" y="172" width="120" height="8" rx="4" fill="#B9C0CE" stroke={INK} strokeWidth={W} />
+      <ScarfTail id={eq.clothes} />
 
       {/* paws on the laptop edge (typing), or waving when happy */}
       {happy ? (
-        <g fill={INK}>
+        <g fill={sleeve || INK} stroke={sleeve ? INK : "none"} strokeWidth="3">
           <ellipse className="arm-up l" cx="46" cy="118" rx="12" ry="22" transform="rotate(-25 46 118)" />
           <ellipse className="arm-up r" cx="194" cy="118" rx="12" ry="22" transform="rotate(25 194 118)" />
         </g>

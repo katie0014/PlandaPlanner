@@ -227,3 +227,24 @@ input:focus, select:focus { outline: none; border-color: var(--pink-deep); }
 .good-band { position: absolute; left: 0; right: 0; background: rgba(123,196,127,.16); pointer-events: none; }
 .mark.fixed { background: #e3e3e3; border: 1px solid #999; }
 .sw.good { background: rgba(123,196,127,.35); }
+
+/* gamification */
+.bamboo-count { display: inline-flex; align-items: center; gap: 4px; background: #e8f6e9; border: 3px solid var(--green); border-radius: 999px; padding: 4px 14px; font-weight: 800; margin-right: 8px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--black); color: #fff; padding: 12px 22px; border-radius: 999px; font-weight: 800; z-index: 300; box-shadow: 0 6px 20px rgba(0,0,0,.3); animation: pop .3s ease-out; }
+@keyframes pop { from { transform: translate(-50%, 20px); opacity: 0; } }
+.shop-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.balance { font-size: 22px; font-weight: 800; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 14px; }
+.shop-item { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding: 14px; }
+.shop-item.owned { border-color: var(--green); }
+.shop-item .price { font-weight: 800; }
+.shop-item .btn { width: 100%; }
+.shop-item svg { background: var(--pink-light); border-radius: 14px; }
+.cust-grid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(300px, 1.3fr); gap: 20px; align-items: start; }
+.cust-preview { position: sticky; top: 80px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.slot-group { margin-bottom: 16px; }
+.slot-group h3 { margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-weight: 700; background: var(--white); border: 3px solid var(--pink); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.chip.on { background: var(--green); border-color: var(--green-dark); }
+@media (max-width: 900px) { .cust-grid { grid-template-columns: 1fr; } .cust-preview { position: static; } }

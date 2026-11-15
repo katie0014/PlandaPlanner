@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useApp } from "../context/AppContext.jsx";
 import { NavLink } from "react-router-dom";
 import PandaMascot from "./PandaMascot.jsx";
 
@@ -85,16 +86,33 @@ export function BambooForest({ progress, sway = false, count = 14 }) {
 }
 
 export function TopNav() {
+  const { bamboo } = useApp();
   return (
     <nav className="topnav" aria-label="Main">
       <NavLink to="/home">🐼 Panda Planner</NavLink>
       <div>
+        <span className="bamboo-count" aria-label={`${bamboo} bamboo`} title="Your bamboo">🎋 {bamboo}</span>
         <NavLink to="/home">Home</NavLink>
         <NavLink to="/calendar">Calendar</NavLink>
         <NavLink to="/study">Study</NavLink>
+        <NavLink to="/shop">Shop</NavLink>
+        <NavLink to="/customize">Customize</NavLink>
       </div>
     </nav>
   );
+}
+
+// Small pop-up for bamboo earnings and purchases; disappears on its own.
+export function Toast() {
+  const { toast } = useApp();
+  const [shown, setShown] = useState(null);
+  useEffect(() => {
+    if (!toast) return;
+    setShown(toast);
+    const t = setTimeout(() => setShown(null), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
+  return shown ? <div className="toast" role="status" key={shown.id}>{shown.text}</div> : null;
 }
 
 export const PlanningOverlay = ({ show }) =>

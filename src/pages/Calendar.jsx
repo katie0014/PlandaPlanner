@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext.jsx";
 import { BambooDecor, Card, PrimaryButton, Stars, TopNav, PlanningOverlay } from "../components/ui.jsx";
 import AssignmentForm from "../components/AssignmentForm.jsx";
 import { WeekGrid, DayTimeline } from "../components/TimeGrid.jsx";
+import { taskReward } from "../lib/rewards.js";
 import { parseTasksCsv } from "../lib/csv.js";
 import { parseIcs, inferGoodHours, describeGoodHours } from "../lib/ics.js";
 import { WINDOWS } from "../lib/scheduler.js";
@@ -152,6 +153,7 @@ function Assignments({ app }) {
               </div>
               <p className="muted">Due {fmtDate(parse(a.dueDate))}, {fmtTime(parse(a.dueDate))} · {a.estHours}h estimated</p>
               <Stars value={a.effort} />
+              {a.status !== "done" && !a.bambooAwarded && <p className="small muted">🎋 {taskReward(a).total} bamboo if you finish it now</p>}
               <div className="progress" aria-label={`${pct}% complete`}><div style={{ width: `${pct}%` }} /></div>
               <p className="muted small">{(a.hoursDone || 0).toFixed(2).replace(/\.?0+$/, "")} / {a.estHours} hours done</p>
               <div className="row">

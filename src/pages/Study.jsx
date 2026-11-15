@@ -6,12 +6,13 @@ import PandaMascot from "../components/PandaMascot.jsx";
 import { getEncouragement } from "../lib/api.js";
 import { randomEncouragement } from "../lib/encouragements.js";
 import { fmtTime, parse } from "../lib/dates.js";
+import { sessionReward } from "../lib/rewards.js";
 
 const FREE = "free";
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 export default function Study() {
-  const { timeBlocks, assignments, toggleBlockDone, addStalks, stats } = useApp();
+  const { timeBlocks, assignments, toggleBlockDone, addStalks, stats, earnBamboo } = useApp();
   const loc = useLocation();
   const now = new Date();
 
@@ -72,6 +73,11 @@ export default function Study() {
     if (!finished) return;
     if (!isBreak) {
       addStalks(Math.max(1, Math.round(total / 300)));
+      // pay once per scheduled block: re-running a block that is already done earns nothing
+      if (!block || !block.done) {
+        const amt = sessionReward(assignments.find((a) => a.id === block?.assignmentId)?.effort);
+        earnBamboo(amt, `Session complete! +${amt} 🎋`);
+      }
       if (block && !block.done) toggleBlockDone(block.id, true);
     } else if (block && !block.done) toggleBlockDone(block.id, true);
     setMsg(isBreak ? "Break's over. Ready for the next one?" : "Session complete! Time for a snack. 🎋");
