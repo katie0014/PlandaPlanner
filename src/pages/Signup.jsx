@@ -26,7 +26,7 @@ export default function Signup() {
       <div className="signup-wrap">
         <PandaMascot state="idle" size={300} />
         <Card className="signup-card">
-          <h1>Sign up here</h1>
+          <h1>Sign Up Here</h1>
           <form onSubmit={(e) => { e.preventDefault(); setOpen(true); }} className="form-grid">
             <label>Name
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required />

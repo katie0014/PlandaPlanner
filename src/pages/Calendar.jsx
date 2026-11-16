@@ -19,7 +19,7 @@ export default function CalendarPage() {
       <TopNav />
       <main className="page wide">
         <BambooDecor />
-        <h1>Calendar &amp; planning</h1>
+        <h1>Calendar &amp; Planning</h1>
         <div className="tabs" role="tablist">
           {TABS.map((t, i) => (
             <button key={t} role="tab" aria-selected={tab === i} className={tab === i ? "on" : ""} onClick={() => setTab(i)}>{t}</button>
@@ -61,7 +61,7 @@ function IcsUpload({ app }) {
   const best = good ? describeGoodHours(good) : [];
   return (
     <Card className="ics-card">
-      <h3>Import your calendar</h3>
+      <h3>Import Your Calendar</h3>
       <p className="hint">Upload an .ics file (export it from Google Calendar, Apple Calendar or Outlook). Your classes and meetings become fixed events, and Panda plans study time around them.</p>
       <input type="file" accept=".ics,text/calendar" onChange={onFile} aria-label="Upload .ics file" />
       {error && <p role="alert" style={{ color: "#b3261e" }}>{error}</p>}
@@ -104,7 +104,7 @@ function CsvUpload({ app }) {
   };
   return (
     <Card className="ics-card">
-      <h3>Import assignments from a .csv</h3>
+      <h3>Import Assignments from a .csv</h3>
       <p className="hint">Columns: name and due date (required), plus optional time, hours and effort (1-5). Dates like 2026-10-21, 10/21, Oct 21 or "Friday" all work. Panda reads the due dates and schedules around them.</p>
       <input type="file" accept=".csv,text/csv" onChange={onFile} aria-label="Upload .csv file" />
       {error && <p role="alert" style={{ color: "#b3261e" }}>{error}</p>}

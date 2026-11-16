@@ -11,7 +11,7 @@ export default function Customize() {
       <TopNav />
       <main className="page wide">
         <BambooDecor />
-        <h1>Customize your panda</h1>
+        <h1>Customize Your Panda</h1>
         <p className="muted">Whatever you equip shows up on every panda in the app. Need more? Visit the <Link to="/shop">shop</Link>.</p>
         <div className="cust-grid">
           <Card className="cust-preview">

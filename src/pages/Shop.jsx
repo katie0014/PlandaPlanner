@@ -26,7 +26,7 @@ export default function Shop() {
         <BambooDecor />
         <div className="shop-head">
           <div>
-            <h1>Bamboo shop</h1>
+            <h1>Bamboo Shop</h1>
             <p className="muted">Spend the bamboo you earn from study sessions and finished tasks. Equip what you buy on the <Link to="/customize">Customize</Link> page.</p>
           </div>
           <div className="balance">🎋 {bamboo} bamboo</div>

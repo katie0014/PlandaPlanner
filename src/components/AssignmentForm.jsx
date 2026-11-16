@@ -33,7 +33,7 @@ export default function AssignmentForm({ initial, onSubmit, onCancel }) {
 
   return (
     <form className="card form-grid" onSubmit={submit}>
-      <h3>{initial ? "Edit assignment" : "Add an assignment"}</h3>
+      <h3>{initial ? "Edit Assignment" : "Add an Assignment"}</h3>
       <label>Name
         <input value={f.name} onChange={up("name")} placeholder="Biology essay" required />
       </label>

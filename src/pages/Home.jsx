@@ -29,7 +29,7 @@ export default function Home() {
         <div className="home-grid">
           <Card className="schedule">
             <div className="row between">
-              <h2>Today's schedule</h2>
+              <h2>Today's Schedule</h2>
               <PrimaryButton variant="small" onClick={() => generatePlan()} disabled={planning}>Regenerate plan</PrimaryButton>
             </div>
             {today.length === 0 ? (

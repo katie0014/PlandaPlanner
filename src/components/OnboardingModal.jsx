@@ -20,7 +20,7 @@ const Options = ({ options, value, onChange, multi }) => {
 const STEPS = [
   {
     key: "procrastination",
-    q: "How much do you procrastinate?",
+    q: "How Much Do You Procrastinate?",
     render: (v, set) => (
       <>
         <Slider min="0" max="100" value={v ?? 50} onChange={(e) => set(Number(e.target.value))} aria-label="Procrastination" />
@@ -31,35 +31,35 @@ const STEPS = [
   },
   {
     key: "chronotype",
-    q: "Are you an early bird, night owl, or neither?",
+    q: "Are You an Early Bird, Night Owl, or Neither?",
     render: (v, set) => (
       <Options value={v} onChange={set} options={[["early_bird", "Early bird", "🌅"], ["night_owl", "Night owl", "🌙"], ["neither", "Neither", "⛅"]]} />
     ),
   },
   {
     key: "startTiming",
-    q: "When do you usually start an assignment?",
+    q: "When Do You Usually Start an Assignment?",
     render: (v, set) => (
       <Options value={v} onChange={set} options={[["early", "Near the start", "🌱"], ["middle", "In the middle", "🌿"], ["due_date", "On the due date", "🔥"]]} />
     ),
   },
   {
     key: "goals",
-    q: "What are your goals?",
+    q: "What Are Your Goals?",
     render: (v, set) => (
       <Options multi value={v} onChange={set} options={[["start_early", "Start assignments early", "⏰"], ["focus", "Improve focus", "🎯"], ["time_management", "Help time management", "🗓️"], ["other", "Other", "✨"]]} />
     ),
   },
   {
     key: "focusStyle",
-    q: "Do you focus on one thing at a time or mix it up?",
+    q: "Do You Focus on One Thing at a Time or Mix It Up?",
     render: (v, set) => (
       <Options value={v} onChange={set} options={[["single", "One thing at a time", "1️⃣"], ["mixed", "Mix it up", "🔀"]]} />
     ),
   },
   {
     key: "breakHours",
-    q: "How often do you take breaks?",
+    q: "How Often Do You Take Breaks?",
     render: (v, set) => (
       <>
         <Slider min="0" max="4" step="0.25" value={v ?? 1} onChange={(e) => set(Number(e.target.value))} aria-label="Break hours per day" />

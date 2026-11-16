@@ -14,22 +14,22 @@ export const SLOT_RULES = {
 
 // Slots as shown on the Customize page.
 export const SLOTS = [
-  { id: "background", label: "Background color", emoji: "🎨" },
-  { id: "sticker", label: "Laptop stickers (as many as you like)", emoji: "⭐" },
-  { id: "desk", label: "Desk accessories (max 2)", emoji: "📚" },
-  { id: "head", label: "Head accessory (1)", emoji: "🎀" },
+  { id: "background", label: "Background Color", emoji: "🎨" },
+  { id: "sticker", label: "Laptop Stickers (As Many as You Like)", emoji: "⭐" },
+  { id: "desk", label: "Desk Accessories (Max 2)", emoji: "📚" },
+  { id: "head", label: "Head Accessory (1)", emoji: "🎀" },
   { id: "clothes", label: "Clothes (1)", emoji: "🧥" },
 ];
 
 // Sections of the shop page, in display order.
 export const CATEGORIES = [
-  { id: "background", label: "Background colors", emoji: "🎨", slot: "background" },
-  { id: "sticker", label: "Laptop stickers", emoji: "⭐", slot: "sticker" },
+  { id: "background", label: "Background Colors", emoji: "🎨", slot: "background" },
+  { id: "sticker", label: "Laptop Stickers", emoji: "⭐", slot: "sticker" },
   { id: "mug", label: "Mugs", emoji: "☕", slot: "desk" },
   { id: "drink", label: "Drinks", emoji: "🧋", slot: "desk" },
-  { id: "object", label: "Desk objects", emoji: "📚", slot: "desk" },
+  { id: "object", label: "Desk Objects", emoji: "📚", slot: "desk" },
   { id: "plant", label: "Plants", emoji: "🪴", slot: "desk" },
-  { id: "head", label: "Head accessories", emoji: "🎀", slot: "head" },
+  { id: "head", label: "Head Accessories", emoji: "🎀", slot: "head" },
   { id: "clothes", label: "Clothes", emoji: "🧥", slot: "clothes" },
 ];
 const SLOT_OF = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.slot]));
