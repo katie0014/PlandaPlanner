@@ -1,5 +1,5 @@
 // Kawaii panda peeking over its laptop (flat sticker style, bold outlines).
-// state: idle | happy | focus | sleepy. Pupils glance down at the laptop unless asleep/happy.
+// state: idle | happy | focus | sleepy (headphones are now a shop item, not part of any state). Pupils glance down at the laptop unless asleep/happy.
 import { useApp } from "../context/AppContext.jsx";
 import { START_EQUIPPED, ITEM_BY_ID } from "../lib/shop.js";
 import { Collar, ScarfTail, sleeveColor, HeadItem, Stickers, DeskPiece, Background } from "./PandaItems.jsx";
@@ -24,7 +24,6 @@ export default function PandaMascot({ state = "idle", size = 260, className = ""
   });
   const happy = state === "happy";
   const sleepy = state === "sleepy";
-  const focus = state === "focus";
   return (
     <svg className={`panda panda-${state} ${className}`} width={size} height={(size * 200) / 240} viewBox="0 0 240 200" role="img" aria-label={`Panda mascot, ${state}`} strokeLinecap="round" strokeLinejoin="round">
       <Background id={eq.background?.[0]} />
@@ -69,15 +68,6 @@ export default function PandaMascot({ state = "idle", size = 260, className = ""
       <ellipse cx="120" cy="106" rx="10" ry="6.5" fill={INK} />
       <Collar id={clothes} />
       <HeadItem id={head} />
-
-      {/* headphones */}
-      {focus && head !== "headphones" && (
-        <g>
-          {!head && <path d="M52 86 Q52 24 120 24 Q188 24 188 86" fill="none" stroke="#FF8FB1" strokeWidth="8" />}
-          <rect x="41" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth={W} />
-          <rect x="180" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth={W} />
-        </g>
-      )}
 
       {/* desk, then whatever stands on it */}
       <rect x="14" y="178" width="212" height="9" rx="4.5" fill="#F9D9B0" stroke={INK} strokeWidth={W} />
