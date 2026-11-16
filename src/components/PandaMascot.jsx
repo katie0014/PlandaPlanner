@@ -71,7 +71,7 @@ export default function PandaMascot({ state = "idle", size = 260, className = ""
       <HeadItem id={head} />
 
       {/* headphones */}
-      {focus && (
+      {focus && head !== "headphones" && (
         <g>
           {!head && <path d="M52 86 Q52 24 120 24 Q188 24 188 86" fill="none" stroke="#FF8FB1" strokeWidth="8" />}
           <rect x="41" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth={W} />

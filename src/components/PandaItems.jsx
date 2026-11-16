@@ -67,6 +67,14 @@ export function HeadItem({ id }) {
           <ellipse cx="120" cy="40" rx="50" ry="9" fill="#F5DDA0" {...S} />
         </g>
       );
+    case "headphones":
+      return (
+        <g>
+          <path d="M52 86 Q52 24 120 24 Q188 24 188 86" fill="none" stroke="#FF8FB1" strokeWidth="8" />
+          <rect x="41" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth="3.5" />
+          <rect x="180" y="72" width="19" height="34" rx="9" fill="#FFC8DD" stroke={INK} strokeWidth="3.5" />
+        </g>
+      );
     case "crown":
       return (
         <g>

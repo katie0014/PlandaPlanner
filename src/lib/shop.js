@@ -74,6 +74,7 @@ const RAW = [
   { id: "straw", cat: "head", name: "Straw hat", price: 160 },
   { id: "flowers", cat: "head", name: "Flower crown", price: 170 },
   { id: "crown", cat: "head", name: "Golden crown", price: 190 },
+  { id: "headphones", cat: "head", name: "Headphones", price: 195 },
 
   { id: "scarf-red", cat: "clothes", name: "Cozy scarf", price: 200, color: "#E85D75" },
   { id: "hoodie-pink", cat: "clothes", name: "Pink hoodie", price: 220, color: "#FF8FB1" },
