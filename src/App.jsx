@@ -7,6 +7,8 @@ import Study from "./pages/Study.jsx";
 import Shop from "./pages/Shop.jsx";
 import Customize from "./pages/Customize.jsx";
 import { Toast } from "./components/ui.jsx";
+import MiniTimer from "./components/MiniTimer.jsx";
+import { SessionProvider } from "./context/SessionContext.jsx";
 
 function Guard({ children }) {
   const { user } = useApp();
@@ -17,6 +19,7 @@ function Guard({ children }) {
 export default function App() {
   return (
     <AppProvider>
+      <SessionProvider>
       <HashRouter>
         <Routes>
           <Route path="/" element={<Signup />} />
@@ -27,8 +30,10 @@ export default function App() {
           <Route path="/customize" element={<Guard><Customize /></Guard>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <MiniTimer />
         <Toast />
       </HashRouter>
+      </SessionProvider>
     </AppProvider>
   );
 }

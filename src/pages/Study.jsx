@@ -1,58 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext.jsx";
+import { FREE, useSession } from "../context/SessionContext.jsx";
 import { BambooForest, PrimaryButton, SpeechBubble, TopNav } from "../components/ui.jsx";
 import PandaMascot from "../components/PandaMascot.jsx";
+import { mmss } from "../components/MiniTimer.jsx";
 import { getEncouragement } from "../lib/api.js";
 import { randomEncouragement } from "../lib/encouragements.js";
 import { fmtTime, parse } from "../lib/dates.js";
-import { sessionReward } from "../lib/rewards.js";
-
-const FREE = "free";
-const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 export default function Study() {
-  const { timeBlocks, assignments, toggleBlockDone, addStalks, stats, earnBamboo } = useApp();
+  const { timeBlocks, assignments, toggleBlockDone, stats } = useApp();
+  const { session, selectTask, start, pause, reset, dismiss } = useSession();
   const loc = useLocation();
-  const now = new Date();
+  const { blockId, block, isBreak, title, total, left, running, finished, progress } = session;
+  const [msg, setMsg] = useState("Ready when you are. You've got this!");
 
   const options = useMemo(
     () => timeBlocks.filter((b) => b.type !== "fixed" && !b.done && parse(b.end) > new Date(Date.now() - 3600000)).sort((a, b) => parse(a.start) - parse(b.start)),
     [timeBlocks]
   );
-  const defaultId = useMemo(() => {
+
+  // On arrival: keep a session that is already under way (the timer keeps running while you browse);
+  // otherwise start from the block chosen on Home, the current block, or the next study block.
+  useEffect(() => {
+    if (finished) dismiss(); // the finished session has been seen
+    if (running || (blockId && (finished || left < total))) return;
     const n = new Date();
     const cur = options.find((b) => parse(b.start) <= n && parse(b.end) > n);
-    return loc.state?.blockId && options.some((b) => b.id === loc.state.blockId) ? loc.state.blockId : (cur || options.find((b) => b.type === "study") || options[0])?.id || FREE;
+    const wanted = loc.state?.blockId && options.some((b) => b.id === loc.state.blockId) ? loc.state.blockId : null;
+    const pick = wanted || (blockId && blockId !== FREE && options.some((b) => b.id === blockId) ? blockId : (cur || options.find((b) => b.type === "study") || options[0])?.id || FREE);
+    if (pick !== blockId) selectTask(pick);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [blockId, setBlockId] = useState(defaultId);
-  const block = options.find((b) => b.id === blockId) || timeBlocks.find((b) => b.id === blockId);
-  const isBreak = block?.type === "break";
-  const total = block ? Math.max(60, Math.round((parse(block.end) - parse(block.start)) / 1000)) : 25 * 60;
-
-  const [left, setLeft] = useState(total);
-  const [running, setRunning] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const endAt = useRef(0);
-  const [msg, setMsg] = useState("Ready when you are. You've got this!");
-
-  const title = block ? block.title : "Free study session";
   const assignmentName = block?.assignmentId && assignments.find((a) => a.id === block.assignmentId)?.name;
-
-  // reset when the task changes
-  useEffect(() => { setRunning(false); setFinished(false); setLeft(total); }, [blockId, total]);
-
-  // countdown
-  useEffect(() => {
-    if (!running) return;
-    const t = setInterval(() => {
-      const l = Math.max(0, Math.round((endAt.current - Date.now()) / 1000));
-      setLeft(l);
-      if (l === 0) { setRunning(false); setFinished(true); }
-    }, 250);
-    return () => clearInterval(t);
-  }, [running]);
+  const shownId = blockId || FREE;
 
   const say = async (state) => {
     const m = await getEncouragement({ task: title, minutesElapsed: Math.round((total - left) / 60), state }, msg);
@@ -68,40 +50,26 @@ export default function Study() {
     return () => clearTimeout(t);
   }, [running]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // session end: log it, mark the block done, advance
   useEffect(() => {
-    if (!finished) return;
-    if (!isBreak) {
-      addStalks(Math.max(1, Math.round(total / 300)));
-      // pay once per scheduled block: re-running a block that is already done earns nothing
-      if (!block || !block.done) {
-        const amt = sessionReward(assignments.find((a) => a.id === block?.assignmentId)?.effort);
-        earnBamboo(amt, `Session complete! +${amt} 🎋`);
-      }
-      if (block && !block.done) toggleBlockDone(block.id, true);
-    } else if (block && !block.done) toggleBlockDone(block.id, true);
-    setMsg(isBreak ? "Break's over. Ready for the next one?" : "Session complete! Time for a snack. 🎋");
+    if (finished) setMsg(isBreak ? "Break's over. Ready for the next one?" : "Session complete! Time for a snack. 🎋");
   }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const start = () => {
-    if (left === 0) return;
-    endAt.current = Date.now() + left * 1000;
-    setRunning(true);
-    say("start");
-  };
-  const reset = () => { setRunning(false); setFinished(false); setLeft(total); };
-  const markDone = () => {
-    if (block && !block.done) toggleBlockDone(block.id, true);
-    setRunning(false);
-    next();
-  };
   const next = () => {
     const idx = options.findIndex((b) => b.id === blockId);
     const nxt = options.slice(idx + 1).find((b) => !b.done);
-    setBlockId(nxt ? nxt.id : FREE);
+    selectTask(nxt ? nxt.id : FREE);
+  };
+  const onStart = () => { start(); say("start"); };
+  const markDone = () => {
+    if (block && !block.done) toggleBlockDone(block.id, true);
+    pause();
+    next();
+  };
+  const choose = (id) => {
+    if ((running || left < total) && !finished && !window.confirm("Switch tasks? Your current timer will reset.")) return;
+    selectTask(id);
   };
 
-  const progress = 1 - left / total;
   const state = finished && !isBreak ? "happy" : isBreak ? "sleepy" : "focus";
 
   return (
@@ -112,11 +80,12 @@ export default function Study() {
           <span>Task to complete right now: <b>{isBreak ? "Take a break 🍵" : title}</b></span>
           {assignmentName && !isBreak && <span className="muted"> ({assignmentName})</span>}
           {block && <span className="muted small"> · {fmtTime(parse(block.start))}–{fmtTime(parse(block.end))}</span>}
-          <select value={blockId} onChange={(e) => setBlockId(e.target.value)} aria-label="Choose task">
+          <select value={shownId} onChange={(e) => choose(e.target.value)} aria-label="Choose task">
             <option value={FREE}>Free study session (25 min)</option>
             {options.map((b) => (
               <option key={b.id} value={b.id}>{parse(b.start).toLocaleDateString([], { weekday: "short" })} {fmtTime(parse(b.start))} · {b.title}</option>
             ))}
+            {block && !options.some((b) => b.id === block.id) && <option value={block.id}>{block.title}</option>}
           </select>
         </div>
 
@@ -136,9 +105,9 @@ export default function Study() {
             {finished ? (
               <PrimaryButton onClick={next}>Next</PrimaryButton>
             ) : running ? (
-              <PrimaryButton onClick={() => setRunning(false)}>Pause</PrimaryButton>
+              <PrimaryButton onClick={pause}>Pause</PrimaryButton>
             ) : (
-              <PrimaryButton onClick={start}>{left < total ? "Resume" : "Start"}</PrimaryButton>
+              <PrimaryButton onClick={onStart}>{left < total ? "Resume" : "Start"}</PrimaryButton>
             )}
             <PrimaryButton variant="ghost" onClick={reset}>Reset</PrimaryButton>
             <PrimaryButton variant="green" onClick={markDone}>Mark task done</PrimaryButton>

@@ -259,3 +259,16 @@ input:focus, select:focus { outline: none; border-color: var(--pink-deep); }
 .shop-section h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
 .shop-section .sub { margin: 0 0 4px; color: #6b6b6b; font-size: 14px; }
 .chip:disabled { opacity: .45; cursor: not-allowed; }
+
+/* floating mini study timer */
+.mini-timer { position: fixed; right: 16px; bottom: 16px; width: 250px; z-index: 90; background: var(--white); border: 3px solid var(--pink-deep); border-radius: 20px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,.2); animation: pop2 .25s ease-out; }
+@keyframes pop2 { from { transform: translateY(16px); opacity: 0; } }
+.mini-top { display: flex; align-items: center; gap: 8px; position: relative; }
+.mini-info { min-width: 0; }
+.mini-title { font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+.mini-time { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.mini-x { position: absolute; top: -4px; right: -4px; background: none; border: 0; cursor: pointer; font-size: 16px; }
+.mini-forest .forest { height: 56px; }
+.mini-actions { display: flex; gap: 8px; margin-top: 6px; }
+.mini-actions .btn { text-decoration: none; padding: 3px 14px; font-size: 13px; }
+@media (max-width: 600px) { .mini-timer { width: 210px; right: 8px; bottom: 8px; } }
